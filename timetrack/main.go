@@ -27,6 +27,7 @@ func main() {
 	editCmd := flag.NewFlagSet("edit", flag.ExitOnError)
 	editTitle := editCmd.String("title", "", "new title for the entry")
 	editStart := editCmd.Int("start", 0, "adjust start time by minutes (negative = earlier)")
+	editEnd := editCmd.Int("end", 0, "adjust end time by minutes (negative = earlier)")
 
 	noteCmd := flag.NewFlagSet("note", flag.ExitOnError)
 
@@ -106,14 +107,14 @@ func main() {
 	case "edit":
 		editCmd.Parse(os.Args[2:])
 		args := editCmd.Args()
-		if *editTitle == "" && *editStart == 0 {
-			fmt.Println("Error: must specify --title or --start")
-			fmt.Println("Usage: timetrack edit [--title \"new title\"] [--start <mins>] <index>")
+		if *editTitle == "" && *editStart == 0 && *editEnd == 0 {
+			fmt.Println("Error: must specify --title, --start, or --end")
+			fmt.Println("Usage: timetrack edit [--title \"new title\"] [--start <mins>] [--end <mins>] <index>")
 			os.Exit(1)
 		}
 		if len(args) == 0 {
 			fmt.Println("Error: missing entry index")
-			fmt.Println("Usage: timetrack edit [--title \"new title\"] [--start <mins>] <index>")
+			fmt.Println("Usage: timetrack edit [--title \"new title\"] [--start <mins>] [--end <mins>] <index>")
 			os.Exit(1)
 		}
 		index, parseErr := strconv.Atoi(args[0])
@@ -121,7 +122,7 @@ func main() {
 			fmt.Println("Error: index must be a number")
 			os.Exit(1)
 		}
-		err = EditTask(index, *editTitle, *editStart)
+		err = EditTask(index, *editTitle, *editStart, *editEnd)
 
 	case "note":
 		noteCmd.Parse(os.Args[2:])
@@ -179,7 +180,7 @@ Commands:
   list [-n <limit>]          List time entries (default: 10, most recent first)
   view <index>               View full details of an entry
   delete <index>             Delete an entry by index
-  edit [--title <title>] [--start <mins>] <index>
+  edit [--title <title>] [--start <mins>] [--end <mins>] <index>
                            Edit an entry (--start -30 = started 30 mins earlier)
   note <index> <text>        Add a note to an entry (appends if note exists)
   summary [--today|--week|--last]

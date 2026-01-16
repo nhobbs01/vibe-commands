@@ -222,7 +222,7 @@ func DeleteTask(index int) error {
 	return nil
 }
 
-func EditTask(index int, newTitle string, startAdjustMins int) error {
+func EditTask(index int, newTitle string, startAdjustMins int, endAdjustMins int) error {
 	data, err := LoadData()
 	if err != nil {
 		return fmt.Errorf("failed to load data: %w", err)
@@ -252,6 +252,19 @@ func EditTask(index int, newTitle string, startAdjustMins int) error {
 			return fmt.Errorf("adjusted start time would be after end time")
 		}
 		fmt.Printf("Updated start: %s -> %s\n", oldStart.Format("15:04"), entry.StartTime.Format("15:04"))
+	}
+
+	if endAdjustMins != 0 {
+		if entry.EndTime == nil {
+			return fmt.Errorf("cannot adjust end time for a running task")
+		}
+		oldEnd := *entry.EndTime
+		newEnd := entry.EndTime.Add(time.Duration(endAdjustMins) * time.Minute)
+		if newEnd.Before(entry.StartTime) {
+			return fmt.Errorf("adjusted end time would be before start time")
+		}
+		entry.EndTime = &newEnd
+		fmt.Printf("Updated end: %s -> %s\n", oldEnd.Format("15:04"), newEnd.Format("15:04"))
 	}
 
 	if err := SaveData(data); err != nil {
